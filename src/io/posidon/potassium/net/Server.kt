@@ -1,6 +1,7 @@
 package io.posidon.potassium.net
 
 import io.posidon.potassium.Console
+import io.posidon.potassium.loop
 import io.posidon.potassium.net.packets.Packet
 import io.posidon.potassium.print
 import io.posidon.potassium.running
@@ -17,7 +18,7 @@ class Server : Runnable {
         Console.beforeCmdLine {
             Console.println("Starting server...")
         }
-        while (running) {
+        loop {
             try { Player(socket.accept()).start() }
             catch (e: SocketException) {}
             catch (e: Exception) { e.print() }
@@ -31,7 +32,7 @@ class Server : Runnable {
         val socket = ServerSocket(port)
 
         fun sendToAllPlayers(packet: Packet) {
-            for (player in PlayerHandler)
+            for (player in Players)
                 player.send(packet)
         }
 

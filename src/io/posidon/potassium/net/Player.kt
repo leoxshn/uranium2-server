@@ -10,14 +10,19 @@ import java.io.OutputStream
 import java.net.Socket
 
 class Player(private val socket: Socket) : Thread(socket.inetAddress.hostAddress) {
+
     private var output: OutputStream = socket.getOutputStream()
     private var input: InputStream = socket.getInputStream()
+
     private var running = true
+
     var playerName: String? = null
     var id = 0
+
     var x = 0f
     var y = 0f
     var z = 0f
+
     var moveSpeed = 0.5f
     var jumpHeight = 0.5f
 
@@ -33,8 +38,8 @@ class Player(private val socket: Socket) : Thread(socket.inetAddress.hostAddress
             var string = ""
             try { string = input.bufferedReader(Charsets.US_ASCII).readLine() }
             catch (ignore: Exception) {}
-            if (string == "") disconnect()
-            else ReceivedPacketHandler(string)
+            if (string == "") { if (running) disconnect() }
+            else ReceivedPacketHandler(this, string)
         }
     }
 
@@ -45,10 +50,19 @@ class Player(private val socket: Socket) : Thread(socket.inetAddress.hostAddress
             input.close()
             socket.close()
         } catch (ignore: Exception) {}
-        PlayerHandler.remove(id)
-        Console.beforeCmdLine {
-            Console.printInfo(playerName!!, " left the server")
-        }
+        Players.remove(id)
+        Console.beforeCmdLine { Console.printInfo(playerName!!, " left the server") }
+    }
+
+    fun kick() {
+        running = false
+        try {
+            output.close()
+            input.close()
+            socket.close()
+        } catch (ignore: Exception) {}
+        Players.remove(id)
+        Console.printInfo(playerName!!, " left the server")
     }
 
     init {
@@ -59,9 +73,9 @@ class Player(private val socket: Socket) : Thread(socket.inetAddress.hostAddress
             } catch (e: Exception) { e.print() }
             while (!tmp.startsWith("join&"))
             val packet = tmp.split("&")
-            id = packet[1].hashCode()
-            playerName = packet[2]
-            PlayerHandler[id] = this
+            playerName = packet[1]
+            id = packet[2].hashCode()
+            Players.add(this)
             Console.beforeCmdLine {
                 Console.printInfo(playerName!!, " joined the server")
             }

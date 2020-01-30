@@ -1,10 +1,11 @@
 package io.posidon.potassium
 
-import io.posidon.potassium.net.PlayerHandler
+import io.posidon.potassium.net.Players
 import io.posidon.potassium.net.Server
 import java.io.IOException
 
 var running = true
+inline fun loop(methods: () -> Unit) { while (running) methods() }
 
 fun main() {
 	Thread(Console()).start()
@@ -14,12 +15,12 @@ fun main() {
 fun stop() {
 	running = false
 	Console.println("Stopping server...")
-	for (player in PlayerHandler) player.disconnect()
+	for (player in Players) player.kick()
 	try { Server.socket.close() }
 	catch (e: IOException) { e.print() }
 }
 
-fun Exception.print() = Console.beforeCmdLine {
+fun Throwable.print() = Console.beforeCmdLine {
 	print(Console.colors.RED)
 	printStackTrace()
 	print(Console.colors.RESET)

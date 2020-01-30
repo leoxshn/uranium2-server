@@ -1,9 +1,10 @@
 package io.posidon.potassium.net.packets
 
 import io.posidon.potassium.Console
+import io.posidon.potassium.net.Player
 
 object ReceivedPacketHandler {
-    operator fun invoke(string: String) = when {
+    operator fun invoke(player: Player, string: String) = when {
         string.startsWith("mov&") -> {
             val data = string.substring(4).split('&')
             for (thing in data) {
@@ -14,7 +15,7 @@ object ReceivedPacketHandler {
         }
         string.startsWith("join&") -> Console.println("Yo WTF!")
         else -> {
-            Console.println("what is this? -> " + string)
+            Console.println(player.name + " sent an unknown packet: $string")
         }
     }
 }

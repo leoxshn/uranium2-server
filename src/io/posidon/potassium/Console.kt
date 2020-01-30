@@ -1,17 +1,20 @@
 package io.posidon.potassium
 
+import io.posidon.potassium.net.Players
 import io.posidon.potassium.net.Server
 import java.io.File
 
 class Console : Runnable {
 
     companion object {
-        val colors = if (File.listRoots().size == 1 && File.listRoots()[0].path == "/") UnixConsoleColors() else WindowsConsoleColors()
-        const val prefix = "run: "
+        val colors = if (File.listRoots().size == 1 && File.listRoots()[0].path == "/") UnixConsoleColors() else NoConsoleColors()
+        val errHighlightColor = colors.YELLOW_BOLD_BRIGHT
+        val errColor = colors.RED
+        const val prefix = "> "
 
         inline fun println(string: String) = kotlin.io.println(string + colors.RESET)
         inline fun print(string: String) = kotlin.io.print(string + colors.RESET)
-        inline fun printProblem(highlight: String, otherText: String) = println(colors.YELLOW_BOLD_BRIGHT + highlight + colors.RED + otherText)
+        inline fun printProblem(highlight: String, otherText: String) = println(errHighlightColor + highlight + errColor + otherText)
         inline fun printInfo(highlight: String, otherText: String) = println(colors.CYAN_BOLD_BRIGHT + highlight + colors.BLUE + otherText)
 
         inline fun backspace(characters: Int) {
@@ -26,12 +29,12 @@ class Console : Runnable {
     }
 
     override fun run() {
-        while (running) {
+        loop {
             print(colors.BLUE_BOLD + prefix)
             val cmd = readLine()!!.split(' ')
             when (cmd[0]) {
-                "stop" -> stop()
                 "", " " -> {}
+                "stop" -> stop()
                 "ip" -> {
                     Thread(Runnable {
                         val ip = Server.extIP
@@ -39,6 +42,13 @@ class Console : Runnable {
                             println(ip?.let { colors.PURPLE_BOLD + "ip" + colors.PURPLE + " -> " + colors.RESET + it } ?: colors.RED + "error: couldn't get external ip")
                         }
                     }).start()
+                }
+                "kick" -> {
+                    if (cmd.size == 1) println(errColor + "kick who?")
+                    else for (i in 1 until cmd.size) {
+                        Players[cmd[i]]?.kick()
+                            ?: println(errColor + "there's no player called " + errHighlightColor + cmd[i] + errColor + " on the server")
+                    }
                 }
                 else -> printProblem(cmd[0], " isn't a valid command!")
             }
@@ -105,7 +115,7 @@ class Console : Runnable {
         override val CYAN_BOLD_BRIGHT = "\u001b[1;96m"
     }
 
-    class WindowsConsoleColors : ConsoleColors() {
+    class NoConsoleColors : ConsoleColors() {
         override val RESET = ""
 
         override val RED = ""
