@@ -1,6 +1,6 @@
 package io.posidon.potassium.net.packets
 
-import io.posidon.potassium.world.gen.Chunk
+import io.posidon.potassium.world.Chunk
 
 abstract class ChunkPacket(chunk: Chunk) : Packet("position") {
 

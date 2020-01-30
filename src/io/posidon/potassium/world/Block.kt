@@ -1,4 +1,4 @@
-package io.posidon.potassium.world.gen
+package io.posidon.potassium.world
 
 class Block(val type: Type) {
 
